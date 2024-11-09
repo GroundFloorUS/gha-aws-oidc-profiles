@@ -15,8 +15,6 @@ async function assumeRoleWithOIDC(roleArn, sessionName, awsRegion) {
         WebIdentityToken: idToken,
     }));
 
-    console.log('assumed role with OIDC');
-    console.log(creds);
     return creds;
 }
 
@@ -37,27 +35,19 @@ region = ${awsRegion}
     await fs.appendFile(configPath, configContent, 'utf8');
 
     const config = await fs.readFile(configPath, 'utf8');
-    console.log('Written config file, contents:', config, 'path:', configPath);
-}
-
-async function verifySession(awsRegion, profileName) {
-    const stsClient = new STSClient({ region: awsRegion, profile: profileName });
-    const identity = await stsClient.send(new GetCallerIdentityCommand());
-    console.log(identity);
 }
 
 async function main() {
     try {
-        const profileName = core.getInput('profile-name');
+        const profile = core.getInput('profile');
         const roleArn = core.getInput('role-to-assume');
-        const sessionName = core.getInput('session-name');
+        const sessionName = core.getInput('role-session-name');
         const awsRegion = core.getInput('aws-region');
 
         const creds = await assumeRoleWithOIDC(roleArn, sessionName, awsRegion);
-        await setupProfile(creds, profileName, awsRegion);
-        //await verifySession(awsRegion, profileName);
+        await setupProfile(creds, profile, awsRegion);
 
-        console.log(`configured ${profileName}!`);
+        console.log(`Configured ${profile}!`);
     } catch (error) {
         core.setFailed(error.message);
     }
