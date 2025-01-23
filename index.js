@@ -4,7 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
 
-async function assumeRoleWithOIDC(roleArn, sessionName, awsRegion) {
+async function assumeRoleWithOIDC(roleArn, sessionName, awsRegion, sessionDuration) {
     const idToken = await core.getIDToken("sts.amazonaws.com");
     console.log('got id token:', idToken);
 
@@ -13,6 +13,7 @@ async function assumeRoleWithOIDC(roleArn, sessionName, awsRegion) {
         RoleArn: roleArn,
         RoleSessionName: sessionName,
         WebIdentityToken: idToken,
+        DurationSeconds: parseInt(sessionDuration),
     }));
 
     return creds;
@@ -43,8 +44,10 @@ async function main() {
         const roleArn = core.getInput('role-to-assume');
         const sessionName = core.getInput('role-session-name');
         const awsRegion = core.getInput('aws-region');
+        const sessionDuration = core.getInput('session-duration');
 
-        const creds = await assumeRoleWithOIDC(roleArn, sessionName, awsRegion);
+
+        const creds = await assumeRoleWithOIDC(roleArn, sessionName, awsRegion, sessionDuration);
         await setupProfile(creds, profile, awsRegion);
 
         console.log(`Configured ${profile}!`);
